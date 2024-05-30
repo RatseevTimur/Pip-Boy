@@ -245,6 +245,15 @@
     
     
         submitButton.addEventListener('click', () => isEditingTask ? editTask() : addTask())
+
+
+        document.addEventListener("click", ()=>{
+          // console.log("todo", window.location)
+          window.parent.postMessage('Hello from iframe!', '*');
+        })
+
+        // Фрейм: "Все мои системы функционируют! 🚀"
+        window.parent.postMessage('iframeReady', '*');
       </script>
 
   </body>

@@ -95,6 +95,7 @@ input:focus {
 }
 
 body {
+    cursor: pointer;
     background-color: #000;
     font-family: 'Courier New', Courier, monospace;
     display: flex;
