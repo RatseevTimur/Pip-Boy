@@ -22,7 +22,7 @@
     <div class="screen">
       <p>TODO LIST</p>
 
-      <div class="overlay-container">
+      <div class="overlay-container" onselectstart="return false" onmousedown="return false">
         <img src="./img/pip-boy_overlay.png"/>
       </div>
       
@@ -59,202 +59,260 @@
 
     <!-- vanilla js -->
     <script>
+      const localhostAddress = "http://localhost:9000/todo";
+      const newTodoInput = document.querySelector("#new-todo input");
+      const submitButton = document.querySelector("#submit");
+      let isEditingTask = false;
+      let editButtonTodoID = '';
+      let isComplete = false;
+      let serverResponse = true
+      var todoList = []
 
-        const localhostAddress = "http://localhost:9000/todo";
-        const newTodoInput = document.querySelector("#new-todo input");
-        const submitButton = document.querySelector("#submit");
-        let isEditingTask = false;
-        let editButtonTodoID = '';
-        let isComplete = false;
-    
-    
-        async function getTodos() {
-          try {
-            const response = await fetch(localhostAddress);
-            console.log("response", response)
-            const responseData = await response.json();
-            console.log("responseData", responseData)
-            return responseData.data;
-    
-          } catch (error) {
-            console.error("Error:", error);
+      //На случай если у вас нет интернета
+      //Или из меня хреновый бекендер
+      
+      class LocalTodos {
+        constructor() {
+          this.todos = JSON.parse(localStorage.getItem('PipBoyTodos')) || [];
+        }
+
+        saveTodos() {
+          localStorage.setItem("PipBoyTodos", JSON.stringify(this.todos))
+        }
+
+        add(title) {
+          const newTodo = {
+            id: this.generateObjectId(),
+            title: title,
+            completed: false,
+            createdAt: new Date()
+          };
+          this.todos.push(newTodo);
+          this.saveTodos();
+        }
+
+        remove(id) {
+          const index = this.todos.findIndex(todo => todo.id === id);
+          if (index !== -1) {
+            this.todos.splice(index, 1);
+            this.saveTodos();
           }
         }
-    
-        async function createTodo(data) {
-          try {
-            // send POST request with user input as the req body
-            const response = await fetch(localhostAddress, {
-              method: "POST",
-              body: JSON.stringify(data),
-            });
-    
-            const result = await response.json();
-            console.log("Success:", result.message);
-          } catch (error) {
-            console.error("Error:", error);
-          }
+
+        getTodos() {
+          return this.todos;
         }
-    
-        async function deleteTodo(TodoID) {
-          try {
-            const response = await fetch(`${localhostAddress}/${TodoID}`, {
-              method: "DELETE",
-            //   mode: 'cors',
-                headers: {
-                    'Content-Type': 'application/json; charset=utf-8'
-                },
-            });
-            const result = await response.json();
-            console.log("Success:", result.message);
-          } catch (error) {
-            console.error("Error:", error);
-          }
+
+        generateObjectId() {
+          const timestamp = Math.floor(new Date().getTime() / 1000).toString(16);
+          const machineId = Math.floor(Math.random() * 16777215).toString(16);
+          const processId = Math.floor(Math.random() * 65535).toString(16);
+          const counter = Math.floor(Math.random() * 16777215).toString(16);
+
+          return (
+            timestamp +
+            machineId.padStart(6, '0') +
+            processId.padStart(4, '0') +
+            counter.padStart(6, '0')
+          );
         }
-    
-        async function updateTodo(id, data) {
-          try {
-            const response = await fetch(`${localhostAddress}/${id}`, {
-              method: "PUT",
+      }
+
+      const localTodos = new LocalTodos();
+  
+      async function getTodos() {
+        try {
+          const response = await fetch(localhostAddress);
+          console.log("response", response)
+          const responseData = await response.json();
+          console.log("responseData", responseData)
+          return responseData.data;
+  
+        } catch (error) {
+          serverResponse = false
+          console.error("Error:", error);
+          return localTodos.getTodos();
+        }
+      }
+  
+      async function createTodo(data) {
+        try {
+          // send POST request with user input as the req body
+          const response = await fetch(localhostAddress, {
+            method: "POST",
+            body: JSON.stringify(data),
+          });
+  
+          const result = await response.json();
+          console.log("Success:", result.message);
+        } catch (error) {
+          console.error("Error:", error);
+        }
+      }
+  
+      async function deleteTodo(TodoID) {
+        try {
+          const response = await fetch(`${localhostAddress}/${TodoID}`, {
+            method: "DELETE",
+          //   mode: 'cors',
               headers: {
-                "Content-Type": "application/json",
+                  'Content-Type': 'application/json; charset=utf-8'
               },
-              body: JSON.stringify(data),
-            });
-            const result = await response.json();
-            console.log("Success:", result);
-          } catch (error) {
-            console.error("Error:", error);
-          }
+          });
+          const result = await response.json();
+          console.log("Success:", result.message);
+        } catch (error) {
+          console.error("Error:", error);
         }
-    
-        async function addTask() {
-          const data = { "Title": newTodoInput.value };
-          console.log("addTask", data)
-          await createTodo(data);
-          displayTodos();
-          newTodoInput.value = "";
+      }
+  
+      async function updateTodo(id, data) {
+        try {
+          const response = await fetch(`${localhostAddress}/${id}`, {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(data),
+          });
+          const result = await response.json();
+          console.log("Success:", result);
+        } catch (error) {
+          console.error("Error:", error);
         }
-    
-    
-        async function editTask() {
-          const data = { title: newTodoInput.value, completed: isComplete };
-          
-          if (isEditingTask) await updateTodo(editButtonTodoID, data);
-          displayTodos();
-    
-          newTodoInput.value = "";
-          isEditingTask = false;
-          submitButton.innerHTML = "Add";
-        }
-    
-        async function displayTodos() {
-          const todoList = await getTodos();
-          console.log("todoList", todoList)
-          let todoListContainer = document.querySelector("#todos");
-          todoListContainer.innerHTML = "";
-    
-    
-          if (todoList && todoList.length == 0) {
-            todoListContainer.innerHTML += `
-                <div class="todo">
-                    <span> You do not have any tasks </span>
-                </div>
-                `;
-          } else {
-            todoList && todoList.forEach((todo) => {
-                // <button data-id=${todo.id} class="pip-boy-button edit">
-                //         <i class="fas fa-edit">Edit</i>
-                //     </button>
-              todoListContainer.innerHTML += `
+      }
+  
+      async function addTask() {
+        const data = { "Title": newTodoInput.value };
+        console.log("addTask", data)
 
-              <li class="task-item">
-            
-                <span class="task-title"
-                id="todoname"
-                style="text-decoration:${todo.completed  ? 'line-through' : ''}"
-                data-iscomplete="${todo.completed}"
-                data-id="${todo.id}"
-                >
-                ${todo.title}
-                </span>
-                
-                <div class="actions">
-    
-                    <button data-id=${todo.id} class="pip-boy-button delete">
-                    <i class="far fa-trash-alt"> Delete</i>
-                    </button>
-                <div>
-                
-              </li>
-            `;
-            });
-          }
-          deleteTaskButton();
-          editTaskTitleButton();
-          toggleTaskCompletion();
+        if(serverResponse){
+          createTodo(data);
+        }else{
+          localTodos.add(newTodoInput.value)
         }
+        
         displayTodos();
-    
-        function deleteTaskButton() {
-          const deleteTodoButtons = document.querySelectorAll(".delete");
-    
-          for (const deleteButton of deleteTodoButtons) {
-    
-            deleteButton.onclick = async function () {
-              const todoID = deleteButton.getAttribute("data-id");
+        newTodoInput.value = "";
+      }
+  
+  
+      async function editTask() {
+        const data = { title: newTodoInput.value, completed: isComplete };
+        
+        if (isEditingTask) await updateTodo(editButtonTodoID, data);
+        displayTodos();
+  
+        newTodoInput.value = "";
+        isEditingTask = false;
+        submitButton.innerHTML = "Add";
+      }
+  
+      async function displayTodos() {
+        todoList = await getTodos()
+        console.log("todoList", todoList)
+        let todoListContainer = document.querySelector("#todos");
+        todoListContainer.innerHTML = "";
+  
+  
+        if (todoList && todoList.length == 0) {
+          todoListContainer.innerHTML += `
+              <div class="todo">
+                  <span> You do not have any tasks </span>
+              </div>
+              `;
+        } else {
+          todoList && todoList.forEach((todo) => {
+              // <button data-id=${todo.id} class="pip-boy-button edit">
+              //         <i class="fas fa-edit">Edit</i>
+              //     </button>
+            todoListContainer.innerHTML += `
+
+            <li class="task-item">
+          
+              <span class="task-title"
+              id="todoname"
+              style="text-decoration:${todo.completed  ? 'line-through' : ''}"
+              data-iscomplete="${todo.completed}"
+              data-id="${todo.id}"
+              >
+              ${todo.title}
+              </span>
+              
+              <div class="actions">
+  
+                  <button data-id=${todo.id} class="pip-boy-button delete">
+                  <i class="far fa-trash-alt"> Delete</i>
+                  </button>
+              <div>
+              
+            </li>
+          `;
+          });
+        }
+        deleteTaskButton();
+        editTaskTitleButton();
+        toggleTaskCompletion();
+      }
+      displayTodos();
+  
+      function deleteTaskButton() {
+        const deleteTodoButtons = document.querySelectorAll(".delete");
+  
+        for (const deleteButton of deleteTodoButtons) {
+  
+          deleteButton.onclick = async function () {
+            const todoID = deleteButton.getAttribute("data-id");
+
+            if(serverResponse){
               await deleteTodo(todoID);
-              displayTodos();
-            };
-          }
-        }
-    
-        function editTaskTitleButton() {
-          const editTodoTitleButtons = document.querySelectorAll(".edit");
-    
-          for (const editButton of editTodoTitleButtons) {
-            const todoName = editButton.parentNode.parentNode.children[0];
-    
-            editButton.onclick = async function () {
-              newTodoInput.value = todoName.innerText;
-              submitButton.innerHTML = "Edit";
-              isEditingTask = true;
-    
-              editButtonTodoID = editButton.getAttribute("data-id");
-              isComplete = JSON.parse(todoName.getAttribute("data-iscomplete"));
-    
-            };
-          }
-        }
-    
-        function toggleTaskCompletion() {
-          const editTaskCompleted = document.querySelectorAll("#todoname");
-          for (const task of editTaskCompleted) {
-            task.onclick = async function () {
-              const isTaskDone = JSON.parse(
-                task.getAttribute("data-iscomplete")
-              );
-              const todoID = task.getAttribute("data-id");
-    
-              const data = { title: task.innerText, completed: !isTaskDone };
-              await updateTodo(todoID, data);
-              displayTodos();
-            };
-          }
-        }
-    
-    
-        submitButton.addEventListener('click', () => isEditingTask ? editTask() : addTask())
+            }else{
+              localTodos.remove(todoID)
+            }
 
+            displayTodos();
+          };
+        }
+      }
+  
+      function editTaskTitleButton() {
+        const editTodoTitleButtons = document.querySelectorAll(".edit");
+  
+        for (const editButton of editTodoTitleButtons) {
+          const todoName = editButton.parentNode.parentNode.children[0];
+  
+          editButton.onclick = async function () {
+            newTodoInput.value = todoName.innerText;
+            submitButton.innerHTML = "Edit";
+            isEditingTask = true;
+  
+            editButtonTodoID = editButton.getAttribute("data-id");
+            isComplete = JSON.parse(todoName.getAttribute("data-iscomplete"));
+  
+          };
+        }
+      }
+  
+      function toggleTaskCompletion() {
+        const editTaskCompleted = document.querySelectorAll("#todoname");
+        for (const task of editTaskCompleted) {
+          task.onclick = async function () {
+            const isTaskDone = JSON.parse(
+              task.getAttribute("data-iscomplete")
+            );
+            const todoID = task.getAttribute("data-id");
+  
+            const data = { title: task.innerText, completed: !isTaskDone };
+            await updateTodo(todoID, data);
+            displayTodos();
+          };
+        }
+      }
+  
+  
+      submitButton.addEventListener('click', () => isEditingTask ? editTask() : addTask())
 
-        document.addEventListener("click", ()=>{
-          // console.log("todo", window.location)
-          window.parent.postMessage('Hello from iframe!', '*');
-        })
-
-        // Фрейм: "Все мои системы функционируют! 🚀"
-        window.parent.postMessage('iframeReady', '*');
-      </script>
+    </script>
 
   </body>
 </html>

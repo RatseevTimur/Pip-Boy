@@ -21,3 +21,8 @@ body,
   border: none;
   border-radius: 20px 20px 70px 70px;
 }
+
+img { 
+  pointer-events: none;
+  outline: none;
+}

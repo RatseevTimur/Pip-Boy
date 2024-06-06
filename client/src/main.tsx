@@ -4,7 +4,9 @@ import ReactDOM from 'react-dom/client'
 import { Suspense, lazy } from 'react';
 import Loading from './Loading/Loading.jsx';
 
-const App = lazy(() => delayForDemo(import('./App.jsx')));
+import App from './App.jsx'
+
+// const App = lazy(() => delayForDemo(import('./App.jsx')));
 
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
   // <Suspense fallback={<Loading />}>
@@ -24,6 +26,6 @@ ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
 
 function delayForDemo(promise) {
   return new Promise(resolve => {
-    setTimeout(resolve, 5000);
+    setTimeout(resolve, 10000);
   }).then(() => promise);
 }

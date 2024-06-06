@@ -208,3 +208,5 @@ function toggleTaskCompletion() {
 submitButton.addEventListener("click", () =>
   isEditingTask ? editTask() : addTask()
 );
+
+export {}
