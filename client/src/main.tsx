@@ -1,31 +1,37 @@
-import { Canvas } from '@react-three/fiber'
-import ReactDOM from 'react-dom/client'
-
-import { Suspense, lazy } from 'react';
+import React, { Suspense, lazy } from 'react';
+import ReactDOM from 'react-dom/client';
+import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
 import Loading from './Loading/Loading.jsx';
 
-import App from './App.jsx'
+const App = lazy(() => delayForDemo(import('./App.jsx')));
+const AppMini = lazy(() => delayForDemo(import('./AppMini.jsx')));
 
-// const App = lazy(() => delayForDemo(import('./App.jsx')));
+const Home = () => (
+  <div>
+    <h1>Home Page</h1>
+    <Link to="/app">
+      <button>Go to App</button>
+    </Link>
+    <Link to="/mini">
+      <button>Go to AppMini</button>
+    </Link>
+  </div>
+);
 
-ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
-  // <Suspense fallback={<Loading />}>
-    <Canvas
-      camera={{
-        fov: 45,
-        near: 0.1,
-        far: 2000,
-        position: [-3, 1.5, 14]
-      }}
-    >
-      <color attach="background" args={["#434343"]} />
-      <App />
-    </Canvas>
-  // </Suspense>
-)
+ReactDOM.createRoot(document.getElementById('root')).render(
+  <BrowserRouter>
+    <Suspense fallback={<Loading />}>
+      <Routes>
+        {/* <Route path="/" element={<Home />} /> */}
+        <Route path="/" element={<App />} />
+        <Route path="/mini" element={<AppMini />} />
+      </Routes>
+    </Suspense>
+  </BrowserRouter>
+);
 
 function delayForDemo(promise) {
   return new Promise(resolve => {
-    setTimeout(resolve, 10000);
+    setTimeout(resolve, 5000);
   }).then(() => promise);
 }
