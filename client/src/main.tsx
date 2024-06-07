@@ -18,17 +18,23 @@ const Home = () => (
   </div>
 );
 
-ReactDOM.createRoot(document.getElementById('root')).render(
-  <BrowserRouter>
-    <Suspense fallback={<Loading />}>
-      <Routes>
-        {/* <Route path="/" element={<Home />} /> */}
-        <Route path="/" element={<App />} />
-        <Route path="/mini" element={<AppMini />} />
-      </Routes>
-    </Suspense>
-  </BrowserRouter>
-);
+const rootElement = document.getElementById('root');
+
+if (rootElement) {
+  ReactDOM.createRoot(rootElement!).render(
+    <BrowserRouter>
+      <Suspense fallback={<Loading />}>
+        <Routes>
+          {/* <Route path="/" element={<Home />} /> */}
+          <Route path="/" element={<App />} />
+          <Route path="/mini" element={<AppMini />} />
+        </Routes>
+      </Suspense>
+    </BrowserRouter>
+  );
+} else {
+  console.error('Root element not found');
+}
 
 function delayForDemo(promise) {
   return new Promise(resolve => {

@@ -150,9 +150,9 @@ function App() {
           castShadow
           receiveShadow
           occlude="blending"
-          position={[-3, 0, 0]}
+          position={[-5, -2, 0]}
           transform
-          distanceFactor={1.4}
+          distanceFactor={10}
           >
             <button onClick={()=>navigate('/')}>Click Me</button>
           </Html>
