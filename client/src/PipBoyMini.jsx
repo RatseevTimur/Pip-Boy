@@ -8,7 +8,8 @@ export default function PipBoy(){
     )
     return(
       // <Float floatIntensity={10} rotationIntensity={4}>
-      <primitive object={pip_boy.scene} position={[ 0, 0, 0]} rotation={[1.2,-1.58,0]}>
+      <primitive object={pip_boy.scene} scale={2}
+        position={[ 0, 0, 0]} rotation={[1.2,-1.58,0]}>
         <Html wrapperClass="pip_boy"
           style={{
             userSelect: 'none',
@@ -19,8 +20,8 @@ export default function PipBoy(){
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
-            // width: '600px', // Adjust width and height as needed
-            // height: '600px',
+            width: '600px',
+            height: '670px',
           }}
           castShadow
           receiveShadow

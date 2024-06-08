@@ -59,7 +59,7 @@ export function Model() {
     
     return (
         // <group scale={viewport.width / 3} position={[0,0,2]}>
-            <mesh ref={torus} position={[-0.16,0.16,0.8]} rotation={[-.3,0,0]}>
+            <mesh ref={torus} position={[-0.3,.4,1.7]} rotation={[-.3,0,0]} scale={2}>
                 <boxGeometry attach="geometry" args={[ 1., 1.1, .05]} 
                   amount={10 * 2}
                   bevelEnabled={true}
@@ -98,7 +98,7 @@ function App() {
   const [mini, setMini] = useState(true)
 
   const pipBoyRef = useRef();
-  const [targetPosition, setTargetPosition] = useState(new THREE.Vector3(0, 0, 5));
+  const [targetPosition, setTargetPosition] = useState(new THREE.Vector3(1, 1, 5));
 
   const { cameraPosition } = useSpring({
     cameraPosition: targetPosition,
@@ -106,18 +106,30 @@ function App() {
   });
 
   const handlePipBoyClick = () => {
-    const newTargetPosition = new THREE.Vector3(0, 0, 1.5); // Позиция камеры после наезда
-    setTargetPosition(newTargetPosition);
+    // const newTargetPosition = new THREE.Vector3(0, 0, 1.5); // Позиция камеры после наезда
+    // setTargetPosition(newTargetPosition);
   };
+
+  const CameraAnimation = () => {
+    const [started, setStarted] = useState(false)
+    const vec = new THREE.Vector3();
+  
+    useEffect(() => {
+      setStarted(true);
+    });
+  
+    useFrame(state => {
+      if (started) {
+        state.camera.lookAt(Math.PI/2, Math.PI/2, 0);
+        state.camera.position.lerp(vec.set(1, 1, -1), .008)
+      } return null
+    })
+     return null;
+  }
 
   return (
     <Canvas>
-      <animated.perspectiveCamera
-        position={cameraPosition.to((x, y, z) => [x, y, z])}
-        fov={75}
-        near={0.1}
-        far={1000}
-      />
+      {!mini && <CameraAnimation/>}
       <Environment preset="warehouse" />
       <ambientLight intensity={0.5} />
       {/* <color attach="background" args={["#434343"]} /> */}
@@ -133,29 +145,21 @@ function App() {
       />
       <Center>
        
-        
-        
-          <mesh ref={pipBoyRef} onClick={handlePipBoyClick}>
-          {/* {mini ?  */}
-            <PipBoyMini/>
-          {/* :  */}
-            {/* <PipBoy/> */}
-          {/* } */}
-          </mesh>
-        
-        
-
-        
-          <Html 
-          castShadow
-          receiveShadow
-          occlude="blending"
-          position={[-5, -2, 0]}
-          transform
-          distanceFactor={10}
-          >
-            <button onClick={()=>navigate('/')}>Click Me</button>
-          </Html>
+        {/* <mesh ref={pipBoyRef} onPointerDown={()=>setMini(!mini)}> */}
+          <PipBoyMini/>
+          <Model/>
+        {/* </mesh> */}
+           
+        <Html 
+        castShadow
+        receiveShadow
+        occlude="blending"
+        position={[-5, -2, 0]}
+        transform
+        distanceFactor={10}
+        >
+          <button onClick={()=>navigate('/')}>Click Me</button>
+        </Html>
         
 
       </Center>
